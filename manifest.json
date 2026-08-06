@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "DesignTab - Custom New Tab",
+  "description": "A beautiful, customizable new tab page with quick-access shortcuts and background customization.",
+  "version": "1.0.0",
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["https://api.pexels.com/*"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
