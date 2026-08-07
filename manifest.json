@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "DesignTab - Custom New Tab",
+  "name": "Tabby",
   "description": "A beautiful, customizable new tab page with quick-access shortcuts and background customization.",
   "version": "1.0.0",
   "chrome_url_overrides": {
