@@ -6,7 +6,7 @@
 // still works for quick local previews. Inside the real extension, the real
 // chrome.storage.local API is untouched and used as-is.
 if (typeof chrome === "undefined" || !chrome.storage || !chrome.storage.local) {
-  const LS_PREFIX = "designtab_";
+  const LS_PREFIX = "allpeople_";
   window.chrome = window.chrome || {};
   chrome.storage = {
     local: {
@@ -36,7 +36,7 @@ if (typeof chrome === "undefined" || !chrome.storage || !chrome.storage.local) {
       },
     },
   };
-  console.warn("DesignTab: running outside the extension context — using localStorage fallback for storage.");
+  console.warn("Tabby: running outside the extension context — using localStorage fallback for storage.");
 }
 
 // ===== DOM ELEMENTS =====
@@ -234,14 +234,14 @@ function autoDetectCategory(url) {
 
 // ===== CATEGORY METADATA =====
 const CATEGORY_META = {
-  Design:        { emoji: "🎨", color: "#a78bfa", colorLight: "#7c3aed", bg: "rgba(167,139,250,0.12)", border: "rgba(167,139,250,0.3)" },
-  Coding:        { emoji: "💻", color: "#60a5fa", colorLight: "#2563eb", bg: "rgba(96,165,250,0.12)",  border: "rgba(96,165,250,0.3)"  },
-  Icons:         { emoji: "🔷", color: "#34d399", colorLight: "#059669", bg: "rgba(52,211,153,0.12)",  border: "rgba(52,211,153,0.3)"  },
-  Social:        { emoji: "🌐", color: "#f472b6", colorLight: "#db2777", bg: "rgba(244,114,182,0.12)", border: "rgba(244,114,182,0.3)" },
-  Productivity:  { emoji: "✅", color: "#fbbf24", colorLight: "#b45309", bg: "rgba(251,191,36,0.12)",  border: "rgba(251,191,36,0.3)"  },
-  Entertainment: { emoji: "🎬", color: "#f87171", colorLight: "#dc2626", bg: "rgba(248,113,113,0.12)", border: "rgba(248,113,113,0.3)" },
-  "Google":      { emoji: "🔍", color: "#4285F4", colorLight: "#1a56db", bg: "rgba(66,133,244,0.12)",  border: "rgba(66,133,244,0.3)"  },
-  "AI Tools":    { emoji: "🤖", color: "#22d3ee", colorLight: "#0e7490", bg: "rgba(34,211,238,0.12)",  border: "rgba(34,211,238,0.3)"  },
+  Design:        { iconClass: "fa-solid fa-palette", color: "#a78bfa", colorLight: "#7c3aed", bg: "rgba(167,139,250,0.12)", border: "rgba(167,139,250,0.3)" },
+  Coding:        { iconClass: "fa-solid fa-code", color: "#60a5fa", colorLight: "#2563eb", bg: "rgba(96,165,250,0.12)",  border: "rgba(96,165,250,0.3)"  },
+  Icons:         { iconClass: "fa-solid fa-icons", color: "#34d399", colorLight: "#059669", bg: "rgba(52,211,153,0.12)",  border: "rgba(52,211,153,0.3)"  },
+  Social:        { iconClass: "fa-solid fa-share-nodes", color: "#f472b6", colorLight: "#db2777", bg: "rgba(244,114,182,0.12)", border: "rgba(244,114,182,0.3)" },
+  Productivity:  { iconClass: "fa-solid fa-circle-check", color: "#fbbf24", colorLight: "#b45309", bg: "rgba(251,191,36,0.12)",  border: "rgba(251,191,36,0.3)"  },
+  Entertainment: { iconClass: "fa-solid fa-film", color: "#f87171", colorLight: "#dc2626", bg: "rgba(248,113,113,0.12)", border: "rgba(248,113,113,0.3)" },
+  "Google":      { iconClass: "fa-brands fa-google", color: "#4285F4", colorLight: "#1a56db", bg: "rgba(66,133,244,0.12)",  border: "rgba(66,133,244,0.3)"  },
+  "AI Tools":    { iconClass: "fa-solid fa-robot", color: "#22d3ee", colorLight: "#0e7490", bg: "rgba(34,211,238,0.12)",  border: "rgba(34,211,238,0.3)"  },
 };
 
 function getCategoryMeta(cat, light) {
@@ -249,9 +249,7 @@ function getCategoryMeta(cat, light) {
     const m = CATEGORY_META[cat];
     return { ...m, color: light ? m.colorLight : m.color };
   }
-  // Renamed or custom groups fall back to a hash-derived hue. Dark mode
-  // wants a bright pastel; light mode needs much lower lightness or the
-  // text disappears against the light glass panel.
+  // Renamed or custom groups fall back to a hash-derived hue.
   const hues = [30, 60, 200, 280, 320, 180, 140];
   let hash = 0;
   for (let i = 0; i < cat.length; i++) hash += cat.charCodeAt(i);
@@ -259,7 +257,7 @@ function getCategoryMeta(cat, light) {
   const l = light ? 34 : 65;
   const s = light ? 80 : 70;
   return {
-    emoji: "⭐",
+    iconClass: "fa-solid fa-folder",
     color: `hsl(${h},${s}%,${l}%)`,
     bg: `hsla(${h},70%,55%,0.12)`,
     border: `hsla(${h},70%,55%,0.3)`,
@@ -315,18 +313,311 @@ themeSwitch.addEventListener("click", () => {
 });
 
 // ===== INITIALIZATION =====
+// ===== WELCOME / ONBOARDING MODAL =====
+const welcomeOverlay = document.getElementById("welcome-overlay");
+const welcomeStartBtn = document.getElementById("welcome-start-btn");
+
+if (welcomeStartBtn && welcomeOverlay) {
+  welcomeStartBtn.addEventListener("click", () => {
+    welcomeOverlay.classList.remove("active");
+    chrome.storage.local.set({ hasSeenWelcome: true });
+  });
+}
+
+// ===== CENTER LIVE CLOCK & GREETING WIDGET =====
+function updateClock() {
+  const timeEl = document.getElementById("clock-time");
+  const greetingEl = document.getElementById("clock-greeting");
+  const dateEl = document.getElementById("clock-date");
+  if (!timeEl || !greetingEl || !dateEl) return;
+
+  const now = new Date();
+  const hours = now.getHours();
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const formattedTime = `${hours % 12 || 12}:${minutes}`;
+
+  // Smooth pulse/glow effect when minute updates
+  if (timeEl.textContent !== formattedTime) {
+    timeEl.style.transform = "scale(1.03)";
+    timeEl.style.textShadow = "0 0 35px rgba(255, 255, 255, 0.7), 0 8px 32px rgba(0, 0, 0, 0.5)";
+    setTimeout(() => {
+      timeEl.style.transform = "scale(1)";
+      timeEl.style.textShadow = "0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.2)";
+    }, 300);
+    timeEl.textContent = formattedTime;
+  }
+
+  let greeting = "Good evening";
+  if (hours < 12) greeting = "Good morning";
+  else if (hours < 18) greeting = "Good afternoon";
+  greetingEl.textContent = greeting;
+
+  const options = { weekday: "long", month: "long", day: "numeric" };
+  dateEl.textContent = now.toLocaleDateString("en-US", options);
+}
+
+// ===== CENTER QUICK SEARCH FORM & LIVE GOOGLE SUGGESTIONS =====
+const centerSearchForm = document.getElementById("center-search-form");
+const centerSearchInput = document.getElementById("center-search-input");
+const searchSuggestions = document.getElementById("search-suggestions");
+
+let activeSuggestionIndex = -1;
+let suggestDebounce = null;
+
+function fetchSearchSuggestions(query) {
+  if (!query || query.length < 2) {
+    hideSuggestions();
+    return;
+  }
+
+  // Remove existing JSONP script if present
+  const oldScript = document.getElementById("jsonp-suggest-script");
+  if (oldScript) oldScript.remove();
+
+  // Create JSONP script element targeting Google Suggest API
+  const script = document.createElement("script");
+  script.id = "jsonp-suggest-script";
+  script.src = `https://suggestqueries.google.com/complete/search?client=chrome&q=${encodeURIComponent(query)}&callback=handleSearchSuggestions`;
+  document.body.appendChild(script);
+}
+
+window.handleSearchSuggestions = function (data) {
+  if (!data || !data[1] || data[1].length === 0) {
+    hideSuggestions();
+    return;
+  }
+
+  const items = data[1].slice(0, 6); // Top 6 suggestions
+  renderSuggestions(items);
+};
+
+function renderSuggestions(items) {
+  if (!searchSuggestions) return;
+  searchSuggestions.innerHTML = "";
+  activeSuggestionIndex = -1;
+
+  items.forEach((text, idx) => {
+    const item = document.createElement("div");
+    item.className = "suggestion-item";
+    item.setAttribute("data-index", idx);
+    item.innerHTML = `
+      <svg class="suggestion-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <span>${text}</span>
+    `;
+
+    item.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      centerSearchInput.value = text;
+      hideSuggestions();
+      executeSearch(text);
+    });
+
+    searchSuggestions.appendChild(item);
+  });
+
+  searchSuggestions.classList.add("show");
+}
+
+// ===== SEARCH ENGINE SWITCHER CONFIG =====
+const SEARCH_ENGINES = {
+  google:      { name: "Google",      url: "https://www.google.com/search?q=",     placeholder: "Search Google or type a URL...",       icon: "fa-brands fa-google" },
+  youtube:     { name: "YouTube",     url: "https://www.youtube.com/results?search_query=", placeholder: "Search YouTube videos...",    icon: "fa-brands fa-youtube" },
+  chatgpt:     { name: "ChatGPT",     url: "https://chatgpt.com/?q=",              placeholder: "Ask ChatGPT...",                        icon: "fa-solid fa-robot" },
+  perplexity:  { name: "Perplexity",  url: "https://www.perplexity.ai/search?q=",  placeholder: "Ask Perplexity AI...",                  icon: "fa-solid fa-brain" },
+  duckduckgo:  { name: "DuckDuckGo",  url: "https://duckduckgo.com/?q=",           placeholder: "Search DuckDuckGo privately...",        icon: "fa-solid fa-shield-halved" },
+  bing:        { name: "Bing",        url: "https://www.bing.com/search?q=",       placeholder: "Search Bing...",                        icon: "fa-brands fa-microsoft" },
+};
+
+let currentSearchEngine = "google";
+
+const searchEngineSelector = document.getElementById("search-engine-selector");
+const engineCurrentBtn = document.getElementById("engine-current-btn");
+const engineCurrentIcon = document.getElementById("engine-current-icon");
+const engineDropdown = document.getElementById("engine-dropdown");
+
+if (searchEngineSelector && engineCurrentBtn) {
+  engineCurrentBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    searchEngineSelector.classList.toggle("open");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!searchEngineSelector.contains(e.target)) {
+      searchEngineSelector.classList.remove("open");
+    }
+  });
+
+  document.querySelectorAll(".engine-option").forEach((option) => {
+    option.addEventListener("click", () => {
+      const engineKey = option.getAttribute("data-engine");
+      setSearchEngine(engineKey);
+      searchEngineSelector.classList.remove("open");
+    });
+  });
+}
+
+function setSearchEngine(engineKey) {
+  if (!SEARCH_ENGINES[engineKey]) return;
+  currentSearchEngine = engineKey;
+  const cfg = SEARCH_ENGINES[engineKey];
+
+  if (engineCurrentIcon) engineCurrentIcon.className = `${cfg.icon} engine-icon`;
+  if (centerSearchInput) centerSearchInput.placeholder = cfg.placeholder;
+
+  document.querySelectorAll(".engine-option").forEach((opt) => {
+    opt.classList.toggle("active", opt.getAttribute("data-engine") === engineKey);
+  });
+
+  chrome.storage.local.set({ activeSearchEngine: engineKey });
+}
+
+function hideSuggestions() {
+  if (searchSuggestions) {
+    searchSuggestions.classList.remove("show");
+    searchSuggestions.innerHTML = "";
+  }
+  activeSuggestionIndex = -1;
+}
+
+function executeSearch(query) {
+  const isUrl = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/.*)?$/i.test(query);
+  if (isUrl) {
+    const targetUrl = query.includes("://") ? query : "https://" + query;
+    window.location.href = targetUrl;
+  } else {
+    const engineCfg = SEARCH_ENGINES[currentSearchEngine] || SEARCH_ENGINES.google;
+    window.location.href = `${engineCfg.url}${encodeURIComponent(query)}`;
+  }
+}
+
+if (centerSearchForm && centerSearchInput) {
+  centerSearchInput.addEventListener("input", () => {
+    clearTimeout(suggestDebounce);
+    suggestDebounce = setTimeout(() => {
+      fetchSearchSuggestions(centerSearchInput.value.trim());
+    }, 200);
+  });
+
+  centerSearchInput.addEventListener("keydown", (e) => {
+    const items = searchSuggestions ? searchSuggestions.querySelectorAll(".suggestion-item") : [];
+    if (!searchSuggestions.classList.contains("show") || items.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      activeSuggestionIndex = (activeSuggestionIndex + 1) % items.length;
+      updateSuggestionSelection(items);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      activeSuggestionIndex = (activeSuggestionIndex - 1 + items.length) % items.length;
+      updateSuggestionSelection(items);
+    } else if (e.key === "Escape") {
+      hideSuggestions();
+    }
+  });
+
+  function updateSuggestionSelection(items) {
+    items.forEach((item, idx) => {
+      const isSelected = idx === activeSuggestionIndex;
+      item.classList.toggle("active", isSelected);
+      if (isSelected) {
+        centerSearchInput.value = item.querySelector("span").textContent;
+      }
+    });
+  }
+
+  centerSearchInput.addEventListener("blur", () => {
+    setTimeout(hideSuggestions, 200);
+  });
+
+  centerSearchForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    hideSuggestions();
+    const query = centerSearchInput.value.trim();
+    if (query) executeSearch(query);
+  });
+}
+
+// ===== WALLPAPER DIM & BLUR ADJUSTMENTS =====
+const bgDimSlider = document.getElementById("bg-dim-slider");
+const bgBlurSlider = document.getElementById("bg-blur-slider");
+const bgDimVal = document.getElementById("bg-dim-val");
+const bgBlurVal = document.getElementById("bg-blur-val");
+
+function updateBgAdjustments(dim, blur, save = true) {
+  if (dim !== undefined) {
+    const dimOpacity = (100 - parseInt(dim)) / 100;
+    bgOverlay.style.filter = `brightness(${dimOpacity}) blur(${bgBlurSlider ? bgBlurSlider.value : 0}px)`;
+    if (bgDimVal) bgDimVal.textContent = `${dim}%`;
+    if (bgDimSlider) bgDimSlider.value = dim;
+  }
+  if (blur !== undefined) {
+    const dimVal = bgDimSlider ? bgDimSlider.value : 55;
+    const dimOpacity = (100 - parseInt(dimVal)) / 100;
+    bgOverlay.style.filter = `brightness(${dimOpacity}) blur(${blur}px)`;
+    if (bgBlurVal) bgBlurVal.textContent = `${blur}px`;
+    if (bgBlurSlider) bgBlurSlider.value = blur;
+  }
+  if (save) {
+    chrome.storage.local.set({
+      bgDim: bgDimSlider ? bgDimSlider.value : 55,
+      bgBlur: bgBlurSlider ? bgBlurSlider.value : 0
+    });
+  }
+}
+
+if (bgDimSlider) {
+  bgDimSlider.addEventListener("input", (e) => {
+    updateBgAdjustments(e.target.value, undefined, false);
+  });
+  bgDimSlider.addEventListener("change", (e) => {
+    updateBgAdjustments(e.target.value, undefined, true);
+  });
+}
+
+if (bgBlurSlider) {
+  bgBlurSlider.addEventListener("input", (e) => {
+    updateBgAdjustments(undefined, e.target.value, false);
+  });
+  bgBlurSlider.addEventListener("change", (e) => {
+    updateBgAdjustments(undefined, e.target.value, true);
+  });
+}
+
 function init() {
-  chrome.storage.local.get(["customBg", "links", "categoryLinks", "autoNewTab", "bgTimer", "labelsVisible", "lightMode"], (data) => {
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  chrome.storage.local.get(["customBg", "links", "categoryLinks", "autoNewTab", "bgTimer", "labelsVisible", "lightMode", "hasSeenWelcome", "activeSearchEngine", "bgDim", "bgBlur", "wallpaperTopic"], (data) => {
+    if (data.wallpaperTopic) {
+      setWallpaperTopic(data.wallpaperTopic, false);
+    }
+
+    const dim = data.bgDim !== undefined ? data.bgDim : 55;
+    const blur = data.bgBlur !== undefined ? data.bgBlur : 0;
+    updateBgAdjustments(dim, blur, false);
+
+    if (data.activeSearchEngine) {
+      setSearchEngine(data.activeSearchEngine);
+    }
+    // Show Welcome screen on first install
+    if (!data.hasSeenWelcome && welcomeOverlay) {
+      welcomeOverlay.classList.add("active");
+    }
+
     labelsVisible = data.labelsVisible !== false;
     updateGlobalLabelUI();
 
     lightMode = !!data.lightMode;
     applyTheme();
 
-    if (data.autoNewTab) { bgAutoNewtabBtn.classList.add("active"); autoNewtabIndicator.classList.add("on"); }
+    const isAutoNewTab = data.autoNewTab !== false;
+    if (isAutoNewTab) { bgAutoNewtabBtn.classList.add("active"); autoNewtabIndicator.classList.add("on"); }
     if (data.bgTimer) { bgTimerBtn.classList.add("active"); timerIndicator.classList.add("on"); startBgTimer(); }
 
-    if (data.autoNewTab) fetchRandomPexelsWallpaper();
+    if (isAutoNewTab) fetchRandomPexelsWallpaper();
     else if (data.customBg) bgOverlay.style.backgroundImage = `url(${data.customBg})`;
     else bgOverlay.style.backgroundColor = "#0a0a0f";
 
@@ -346,15 +637,53 @@ function init() {
   });
 }
 
-// ===== FETCH RANDOM PEXELS WALLPAPER =====
-const RANDOM_CATEGORIES_LIST = ["technology dark","coding setup","circuit board","server room","cybersecurity","abstract technology","dark minimal desktop","neon technology","programming code","data center","futuristic city","digital network","space universe","dark architecture","geometric abstract"];
+// ===== FETCH RANDOM PEXELS WALLPAPER WITH CUSTOM CATEGORY =====
+let userWallpaperTopic = "technology dark";
+
+const bgCategoryInput = document.getElementById("bg-category-input");
+const bgTopicApplyBtn = document.getElementById("bg-topic-apply-btn");
+const bgTopicChipsContainer = document.getElementById("bg-topic-chips");
+
+function setWallpaperTopic(topic, fetchNow = true) {
+  if (!topic) return;
+  userWallpaperTopic = topic.trim();
+  if (bgCategoryInput) bgCategoryInput.value = userWallpaperTopic;
+
+  document.querySelectorAll(".bg-topic-chip").forEach((chip) => {
+    chip.classList.toggle("active", chip.getAttribute("data-topic").toLowerCase() === userWallpaperTopic.toLowerCase());
+  });
+
+  chrome.storage.local.set({ wallpaperTopic: userWallpaperTopic }, () => {
+    if (fetchNow) {
+      showToast(`Wallpaper category set to "${userWallpaperTopic}"`);
+      fetchRandomPexelsWallpaper();
+    }
+  });
+}
+
+if (bgTopicApplyBtn && bgCategoryInput) {
+  bgTopicApplyBtn.addEventListener("click", () => {
+    setWallpaperTopic(bgCategoryInput.value);
+  });
+  bgCategoryInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") setWallpaperTopic(bgCategoryInput.value);
+  });
+}
+
+if (bgTopicChipsContainer) {
+  bgTopicChipsContainer.addEventListener("click", (e) => {
+    const chip = e.target.closest(".bg-topic-chip");
+    if (!chip) return;
+    setWallpaperTopic(chip.getAttribute("data-topic"));
+  });
+}
 
 async function fetchRandomPexelsWallpaper() {
   try {
-    const randomCat = RANDOM_CATEGORIES_LIST[Math.floor(Math.random() * RANDOM_CATEGORIES_LIST.length)];
+    const searchCat = userWallpaperTopic || "technology dark";
     const randomPage = Math.floor(Math.random() * 10) + 1;
     const response = await fetch(
-      `https://api.pexels.com/v1/search?query=${encodeURIComponent(randomCat)}&orientation=landscape&per_page=15&page=${randomPage}`,
+      `https://api.pexels.com/v1/search?query=${encodeURIComponent(searchCat)}&orientation=landscape&per_page=15&page=${randomPage}`,
       { headers: { Authorization: PEXELS_API_KEY } }
     );
     if (!response.ok) throw new Error(`Pexels API error: ${response.status}`);
@@ -441,9 +770,9 @@ function buildCategorySections(categoryLinks, pinned, colors) {
     const header = document.createElement("div");
     header.className = "cat-header";
 
-    const emoji = document.createElement("span");
-    emoji.className = "cat-emoji";
-    emoji.textContent = meta.emoji;
+    const catIcon = document.createElement("i");
+    catIcon.className = `cat-icon ${meta.iconClass}`;
+    catIcon.style.color = titleColor;
 
     const title = document.createElement("span");
     title.className = "cat-title";
@@ -469,7 +798,7 @@ function buildCategorySections(categoryLinks, pinned, colors) {
       </button>
     `;
 
-    header.appendChild(emoji);
+    header.appendChild(catIcon);
     header.appendChild(title);
     header.appendChild(actions);
     section.appendChild(header);
@@ -618,9 +947,19 @@ function createTile(link, index, source) {
   wrapper.appendChild(tile);
   wrapper.appendChild(label);
 
-  // Left click: navigate
+  // Left click: navigate in current tab
   tile.addEventListener("click", (e) => {
-    if (e.button === 0) window.location.href = link.url;
+    if (e.button === 0) {
+      window.location.href = link.url;
+    }
+  });
+
+  // Middle scroll click: open in new tab
+  tile.addEventListener("auxclick", (e) => {
+    if (e.button === 1) {
+      e.preventDefault();
+      window.open(link.url, "_blank");
+    }
   });
 
   // Right click: context menu
@@ -1184,7 +1523,8 @@ async function fetchPicsumImages(page, append) {
 // ===== AUTO (NEW TAB) TOGGLE =====
 bgAutoNewtabBtn.addEventListener("click", () => {
   chrome.storage.local.get(["autoNewTab"], (data) => {
-    const newState = !data.autoNewTab;
+    const currentState = data.autoNewTab !== false;
+    const newState = !currentState;
     chrome.storage.local.set({ autoNewTab: newState }, () => {
       if (newState) { bgAutoNewtabBtn.classList.add("active"); autoNewtabIndicator.classList.add("on"); showToast("Auto wallpaper ON!"); fetchRandomPexelsWallpaper(); }
       else { bgAutoNewtabBtn.classList.remove("active"); autoNewtabIndicator.classList.remove("on"); showToast("Auto wallpaper OFF"); }
@@ -1276,6 +1616,12 @@ function renderBookmarksList(filter) {
 
     row.appendChild(icon);
     row.appendChild(text);
+    row.addEventListener("auxclick", (e) => {
+      if (e.button === 1) {
+        e.preventDefault();
+        window.open(b.url, "_blank");
+      }
+    });
     bookmarksPanelList.appendChild(row);
   });
 }
@@ -1297,13 +1643,53 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// ===== ESCAPE KEY =====
+// ===== KEYBOARD SHORTCUTS MODAL =====
+const shortcutsBtn = document.getElementById("shortcuts-btn");
+const shortcutsModalOverlay = document.getElementById("shortcuts-modal-overlay");
+const modalCloseShortcuts = document.getElementById("modal-close-shortcuts");
+
+if (shortcutsBtn && shortcutsModalOverlay) {
+  shortcutsBtn.addEventListener("click", () => openModal(shortcutsModalOverlay));
+}
+if (modalCloseShortcuts && shortcutsModalOverlay) {
+  modalCloseShortcuts.addEventListener("click", () => closeModal(shortcutsModalOverlay));
+  shortcutsModalOverlay.addEventListener("click", (e) => {
+    if (e.target === shortcutsModalOverlay) closeModal(shortcutsModalOverlay);
+  });
+}
+
+// ===== ESCAPE KEY & GLOBAL KEYBOARD SHORTCUTS =====
 document.addEventListener("keydown", (e) => {
+  const activeEl = document.activeElement;
+  const isInputActive = activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA" || activeEl.isContentEditable);
+
   if (e.key === "Escape") {
     closeModal(addModalOverlay);
     document.querySelector(".modal-bg").classList.remove("modal-expanded");
     closeModal(bgModalOverlay);
+    if (shortcutsModalOverlay) closeModal(shortcutsModalOverlay);
     contextMenu.style.display = "none";
+  }
+
+  // Press '/' outside inputs to focus search bar
+  if (e.key === "/" && !isInputActive) {
+    e.preventDefault();
+    if (centerSearchInput) {
+      centerSearchInput.focus();
+      centerSearchInput.select();
+    }
+  }
+
+  // Press '?' (Shift + /) outside inputs to toggle Keyboard Shortcuts modal
+  if (e.key === "?" && !isInputActive) {
+    e.preventDefault();
+    if (shortcutsModalOverlay) {
+      if (shortcutsModalOverlay.classList.contains("active")) {
+        closeModal(shortcutsModalOverlay);
+      } else {
+        openModal(shortcutsModalOverlay);
+      }
+    }
   }
 });
 
