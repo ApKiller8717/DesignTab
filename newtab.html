@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ap_Extension</title>
+    <title>Tabby</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
@@ -46,6 +46,62 @@
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
       </button>
+    </div>
+
+    <!-- Center Clock & Greeting Widget -->
+    <div class="center-clock-widget" id="center-clock-widget">
+      <div class="clock-time" id="clock-time">12:00</div>
+      <div class="clock-greeting" id="clock-greeting">Good day</div>
+      <div class="clock-date" id="clock-date">Friday, August 7</div>
+      
+      <!-- Quick Search Bar -->
+      <form class="center-search-bar" id="center-search-form" action="https://www.google.com/search" method="get">
+        <!-- Search Engine Switcher Trigger -->
+        <div class="search-engine-selector" id="search-engine-selector">
+          <button type="button" class="engine-current-btn" id="engine-current-btn" title="Switch Search Engine">
+            <i class="fa-brands fa-google engine-icon" id="engine-current-icon"></i>
+            <i class="fa-solid fa-chevron-down engine-arrow"></i>
+          </button>
+          
+          <div class="engine-dropdown" id="engine-dropdown">
+            <div class="engine-option active" data-engine="google" data-icon="fa-brands fa-google" data-name="Google" data-placeholder="Search Google or type a URL...">
+              <i class="fa-brands fa-google"></i>
+              <span>Google</span>
+            </div>
+            <div class="engine-option" data-engine="youtube" data-icon="fa-brands fa-youtube" data-name="YouTube" data-placeholder="Search YouTube videos...">
+              <i class="fa-brands fa-youtube"></i>
+              <span>YouTube</span>
+            </div>
+            <div class="engine-option" data-engine="chatgpt" data-icon="fa-solid fa-robot" data-name="ChatGPT" data-placeholder="Ask ChatGPT...">
+              <i class="fa-solid fa-robot"></i>
+              <span>ChatGPT</span>
+            </div>
+            <div class="engine-option" data-engine="perplexity" data-icon="fa-solid fa-brain" data-name="Perplexity" data-placeholder="Ask Perplexity AI...">
+              <i class="fa-solid fa-brain"></i>
+              <span>Perplexity</span>
+            </div>
+            <div class="engine-option" data-engine="duckduckgo" data-icon="fa-solid fa-shield-halved" data-name="DuckDuckGo" data-placeholder="Search DuckDuckGo privately...">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>DuckDuckGo</span>
+            </div>
+            <div class="engine-option" data-engine="bing" data-icon="fa-brands fa-microsoft" data-name="Bing" data-placeholder="Search Bing...">
+              <i class="fa-brands fa-microsoft"></i>
+              <span>Bing</span>
+            </div>
+          </div>
+        </div>
+
+        <input type="text" name="q" id="center-search-input" placeholder="Search Google or type a URL..." autocomplete="off" />
+        <button type="submit" class="search-bar-btn" title="Search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+
+        <!-- Live Google Search Suggestions Dropdown -->
+        <div class="search-suggestions-dropdown" id="search-suggestions"></div>
+      </form>
     </div>
 
     <!-- Category Sections (bottom right of page) -->
@@ -144,6 +200,25 @@
         <span class="lgt-mini-track">
           <span class="lgt-mini-thumb"></span>
         </span>
+      </button>
+
+      <!-- Divider -->
+      <div class="bottom-btn-divider"></div>
+
+      <!-- Keyboard Shortcuts Help Button -->
+      <button class="bottom-btn" id="shortcuts-btn" title="Keyboard Shortcuts (?)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+          <line x1="6" y1="8" x2="6.01" y2="8"></line>
+          <line x1="10" y1="8" x2="10.01" y2="8"></line>
+          <line x1="14" y1="8" x2="14.01" y2="8"></line>
+          <line x1="18" y1="8" x2="18.01" y2="8"></line>
+          <line x1="8" y1="12" x2="8.01" y2="12"></line>
+          <line x1="12" y1="12" x2="12.01" y2="12"></line>
+          <line x1="16" y1="12" x2="16.01" y2="12"></line>
+          <line x1="7" y1="16" x2="17" y2="16"></line>
+        </svg>
+        <span>SHORTCUTS</span>
       </button>
 
     </div>
@@ -256,91 +331,136 @@
           <h3>Customize Background</h3>
           <button class="modal-close" id="modal-close-bg">&times;</button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body bg-landscape-body">
+          <!-- Left Column -->
+          <div class="bg-landscape-col">
+            <div class="bg-group">
+              <div class="bg-group-title">Choose a Source</div>
+              <div class="bg-options">
+                <button class="bg-option-btn" id="bg-upload-btn">
+                  <span class="bg-option-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                  </span>
+                  <span>Upload Image</span>
+                </button>
 
-          <div class="bg-group">
-            <div class="bg-group-title">Choose a Source</div>
-            <div class="bg-options">
-              <button class="bg-option-btn" id="bg-upload-btn">
-                <span class="bg-option-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="17 8 12 3 7 8"></polyline>
-                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                  </svg>
-                </span>
-                <span>Upload Image</span>
-              </button>
+                <button class="bg-option-btn" id="bg-url-btn">
+                  <span class="bg-option-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                  </span>
+                  <span>From URL</span>
+                </button>
 
-              <button class="bg-option-btn" id="bg-url-btn">
-                <span class="bg-option-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                  </svg>
-                </span>
-                <span>From URL</span>
-              </button>
+                <button class="bg-option-btn bg-option-pexels" id="bg-pexels-btn">
+                  <span class="bg-option-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                      <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                  </span>
+                  <span>Pexels</span>
+                  <span class="bg-option-tag">Free</span>
+                </button>
 
-              <button class="bg-option-btn bg-option-pexels" id="bg-pexels-btn">
-                <span class="bg-option-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
-                  </svg>
-                </span>
-                <span>Pexels</span>
-                <span class="bg-option-tag">Free</span>
-              </button>
+                <button class="bg-option-btn bg-option-picsum" id="bg-picsum-btn">
+                  <span class="bg-option-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                      <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                  </span>
+                  <span>Picsum</span>
+                  <span class="bg-option-tag">Free · No key</span>
+                </button>
+              </div>
+            </div>
 
-              <button class="bg-option-btn bg-option-picsum" id="bg-picsum-btn">
-                <span class="bg-option-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                    <polyline points="21 15 16 10 5 21"></polyline>
-                  </svg>
-                </span>
-                <span>Picsum</span>
-                <span class="bg-option-tag">Free · No key</span>
-              </button>
+            <div class="bg-group">
+              <div class="bg-group-title">Background Adjustments</div>
+              <div class="bg-sliders-wrap">
+                <div class="bg-slider-item">
+                  <div class="bg-slider-header">
+                    <span>Dim / Darken</span>
+                    <span class="bg-slider-val" id="bg-dim-val">55%</span>
+                  </div>
+                  <input type="range" id="bg-dim-slider" min="0" max="90" value="55" class="bg-range-input" />
+                </div>
+
+                <div class="bg-slider-item">
+                  <div class="bg-slider-header">
+                    <span>Wallpaper Blur</span>
+                    <span class="bg-slider-val" id="bg-blur-val">0px</span>
+                  </div>
+                  <input type="range" id="bg-blur-slider" min="0" max="25" value="0" class="bg-range-input" />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="bg-group">
-            <div class="bg-group-title">Automation</div>
-            <div class="bg-options bg-options-auto">
-              <button class="bg-option-btn bg-option-auto" id="bg-auto-newtab-btn">
-                <span class="bg-option-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="23 4 23 10 17 10"></polyline>
-                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                  </svg>
-                </span>
-                <span>New Wallpaper Every Tab</span>
-                <span class="toggle-indicator" id="auto-newtab-indicator"></span>
-              </button>
+          <!-- Right Column -->
+          <div class="bg-landscape-col">
+            <div class="bg-group">
+              <div class="bg-group-title">Automation & Category Topic</div>
+              <div class="bg-category-topic-wrap">
+                <label for="bg-category-input" class="bg-topic-label">Wallpaper Category Topic</label>
+                <div class="bg-topic-input-row">
+                  <input type="text" id="bg-category-input" placeholder="e.g. nature, cyber, space, cars..." value="nature" autocomplete="off" />
+                  <button type="button" class="bg-topic-apply-btn" id="bg-topic-apply-btn">Apply</button>
+                </div>
+                <div class="bg-topic-chips" id="bg-topic-chips">
+                  <button type="button" class="bg-topic-chip" data-topic="all wallpapers">🌐 All</button>
+                  <button type="button" class="bg-topic-chip active" data-topic="technology dark">Tech Dark</button>
+                  <button type="button" class="bg-topic-chip" data-topic="nature">🌿 Nature</button>
+                  <button type="button" class="bg-topic-chip" data-topic="cyberpunk">🌆 Cyberpunk</button>
+                  <button type="button" class="bg-topic-chip" data-topic="space universe">🚀 Space</button>
+                  <button type="button" class="bg-topic-chip" data-topic="cars luxury">🏎️ Cars</button>
+                  <button type="button" class="bg-topic-chip" data-topic="minimal architecture">🏢 Architecture</button>
+                  <button type="button" class="bg-topic-chip" data-topic="anime aesthetic">✨ Anime</button>
+                </div>
+              </div>
 
-              <button class="bg-option-btn bg-option-timer" id="bg-timer-btn">
-                <span class="bg-option-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                  </svg>
-                </span>
-                <span>Auto-Change Every 2 Min</span>
-                <span class="toggle-indicator" id="timer-indicator"></span>
-              </button>
+              <div class="bg-options bg-options-auto" style="margin-top: 12px;">
+                <button class="bg-option-btn bg-option-auto" id="bg-auto-newtab-btn">
+                  <span class="bg-option-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="23 4 23 10 17 10"></polyline>
+                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                  </span>
+                  <span>New Wallpaper Every Tab</span>
+                  <span class="toggle-indicator" id="auto-newtab-indicator"></span>
+                </button>
+
+                <button class="bg-option-btn bg-option-timer" id="bg-timer-btn">
+                  <span class="bg-option-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                  </span>
+                  <span>Auto-Change Every 2 Min</span>
+                  <span class="toggle-indicator" id="timer-indicator"></span>
+                </button>
+              </div>
             </div>
-          </div>
 
-          <button class="bg-reset-link" id="bg-reset-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="1 4 1 10 7 10"></polyline>
-              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-            </svg>
-            Reset to default background
-          </button>
+            <button class="bg-reset-link" id="bg-reset-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+              </svg>
+              Reset to default background
+            </button>
+          </div>
+        </div>
 
           <!-- URL Input (hidden by default) -->
           <div
@@ -370,6 +490,7 @@
                 <input type="text" id="pexels-search-input" placeholder="Search wallpapers..." autocomplete="off" />
               </div>
               <div class="pexels-chips" id="pexels-chips">
+                <button class="pexels-chip" data-query="all wallpapers">🌐 All</button>
                 <button class="pexels-chip active" data-query="nature">🌿 Nature</button>
                 <button class="pexels-chip" data-query="dark">🌑 Dark</button>
                 <button class="pexels-chip" data-query="city">🏙️ City</button>
@@ -415,7 +536,90 @@
       </div>
     </div>
 
-    <!-- Edit/Delete Shortcut Context Menu -->
+    <!-- ===== WELCOME / ONBOARDING MODAL ===== -->
+    <div class="welcome-overlay" id="welcome-overlay">
+      <div class="welcome-modal">
+        <div class="welcome-header">
+          <div class="welcome-badge">✨ WELCOME TO TABBY</div>
+          <h2>Your Ultimate Custom New Tab</h2>
+          <p>Organize your favorite web apps, discover fresh HD wallpapers, and streamline your workflow.</p>
+        </div>
+
+        <div class="welcome-features">
+          <div class="welcome-feature-card">
+            <div class="welcome-feature-icon">🚀</div>
+            <div class="welcome-feature-text">
+              <h4>Quick Shortcuts</h4>
+              <p>Click any shortcut to open in current tab. Middle-scroll click to open in a new tab.</p>
+            </div>
+          </div>
+
+          <div class="welcome-feature-card">
+            <div class="welcome-feature-icon">🖼️</div>
+            <div class="welcome-feature-text">
+              <h4>Dynamic HD Wallpapers</h4>
+              <p>Automatically rotates stunning HD background images from Pexels on every new tab.</p>
+            </div>
+          </div>
+
+          <div class="welcome-feature-card">
+            <div class="welcome-feature-icon">📂</div>
+            <div class="welcome-feature-text">
+              <h4>Smart Category Groups</h4>
+              <p>Organize sites into custom categories with live auto-detection & custom group colors.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="welcome-footer">
+          <button class="welcome-start-btn" id="welcome-start-btn">
+            <span>Get Started</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== KEYBOARD SHORTCUTS MODAL ===== -->
+    <div class="modal-overlay" id="shortcuts-modal-overlay">
+      <div class="modal modal-shortcuts">
+        <div class="modal-header">
+          <h3>⌨️ Keyboard Shortcuts</h3>
+          <button class="modal-close" id="modal-close-shortcuts">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="shortcut-list">
+            <div class="shortcut-item">
+              <span class="shortcut-desc">Focus Search Bar</span>
+              <kbd class="kbd-key">/</kbd>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-desc">Open Shortcut Link (Current Tab)</span>
+              <kbd class="kbd-key">Left Click</kbd>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-desc">Open Shortcut Link (New Tab)</span>
+              <kbd class="kbd-key">Middle Click</kbd>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-desc">Cycle Suggestions (Search)</span>
+              <kbd class="kbd-key">↑</kbd> <kbd class="kbd-key">↓</kbd>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-desc">Close Modals & Dropdowns</span>
+              <kbd class="kbd-key">Esc</kbd>
+            </div>
+            <div class="shortcut-item">
+              <span class="shortcut-desc">Show Shortcuts Helper</span>
+              <kbd class="kbd-key">?</kbd>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="context-menu" id="context-menu">
       <button class="context-item" id="ctx-edit">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
